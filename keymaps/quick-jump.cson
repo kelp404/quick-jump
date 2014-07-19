@@ -1,0 +1,2 @@
+'.editor':
+  'cmd-;': 'quick-jump:start'

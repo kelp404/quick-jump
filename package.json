@@ -1,0 +1,23 @@
+{
+  "name": "Quick Jump",
+  "main": "./lib/quick-jump",
+  "version": "0.0.0",
+  "description": "Quickly navigate the cursor to any position visible in the editor.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kelp404/quick-jump"
+  },
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+
+  },
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/kelp404/quick-jump/issues"
+  },
+  "homepage": "https://github.com/kelp404/quick-jump",
+  "_id": "quci-jump@0.0.0"
+}
