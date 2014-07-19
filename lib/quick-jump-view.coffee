@@ -40,7 +40,6 @@ class QuickJumpView extends View
                 @targets = @searchTargets content
                 @highlightTargets @targets
 
-            return if originalEvent.metaKey # command + ?
             return if originalEvent.keyCode is 8 # back
 
             if originalEvent.keyCode is 27 # esc
@@ -50,13 +49,13 @@ class QuickJumpView extends View
 
             content = @filterEditorView.editor.getBuffer().lines[0]
             if content.length
-                # there is a filter char
+                # there is a filter char, set cursor to the taget.
                 originalEvent.preventDefault()
                 originalEvent.stopPropagation()
                 index = @targetsIndexTable.indexOf String.fromCharCode(originalEvent.keyCode).toUpperCase()
                 if @targets[index]?
                     @cancel()
-                    @gotoTarget @targets[index]
+                    @gotoTarget @targets[index], originalEvent.metaKey
 
         @filterEditorView.on 'focusout', =>
             if @isWorking
@@ -137,13 +136,15 @@ class QuickJumpView extends View
             $element.css @editorView.pixelPositionForBufferPosition([target.row, target.column])
             @editorView.find('.scroll-view .overlayer:first').append $element
 
-    gotoTarget: (target) ->
+    gotoTarget: (target, isBehind) ->
         """
         Set cursor to the point.
         @param target: {object}
             column: {int}
             row: {int}
+        @param isBehind: {bool} Is behind the target?
         """
+        target.column++ if isBehind
         @editor.setCursorBufferPosition target
 
     setPosition: ->
