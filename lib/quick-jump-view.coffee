@@ -100,7 +100,7 @@ class QuickJumpView extends View
             if searchLineBottom < buffer.lines.length # search after cursor
                 ranSearch++
                 targets.push x for x in @searchAtLine(keyword, buffer, searchLineBottom)
-            break if not ranSearch or targets.length >= 36
+            break if not ranSearch or targets.length >= @targetsIndexTable.length
         targets
 
     searchAtLine: (keyword, buffer, line) ->
