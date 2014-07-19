@@ -7,8 +7,16 @@ class QuickJumpView extends View
         @div class: 'select-list popover-list', =>
             @subview 'filterEditorView', new EditorView(mini: yes)
 
-    # QuickJumpView is visible
-    isWorking: no
+    isWorking: no # QuickJumpView is visible. for focusout event.
+    targets: []
+    """
+    The point objects.
+    [{
+        column: {int}
+        row: {int}}
+    }]
+    """
+    targetsIndexTable: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
     initialize: (@editorView) ->
         @css
@@ -26,6 +34,12 @@ class QuickJumpView extends View
             @isWorking = yes
 
         @filterEditorView.on 'keydown', ({originalEvent}) =>
+            process.nextTick =>
+                # search targets by the filter char
+                content = @filterEditorView.editor.getBuffer().lines[0]
+                @targets = @searchTargets content
+                @highlightTargets @targets
+
             return if originalEvent.metaKey # command + ?
             return if originalEvent.keyCode is 8 # back
 
@@ -39,18 +53,19 @@ class QuickJumpView extends View
                 # there is a filter char
                 originalEvent.preventDefault()
                 originalEvent.stopPropagation()
-                console.log "go #{originalEvent.keyCode}"
+                index = @targetsIndexTable.indexOf String.fromCharCode(originalEvent.keyCode).toUpperCase()
+                if @targets[index]?
+                    @cancel()
+                    @gotoTarget @targets[index]
 
         @filterEditorView.on 'focusout', =>
             if @isWorking
                 @cancel()
 
-        @filterEditorView.editor.on 'contents-modified', =>
-            # search targets by the filter char
-            content = @filterEditorView.editor.getBuffer().lines[0]
-            @searchTargets content
-
     cancel: ->
+        """
+        Hide quick jump view.
+        """
         @clearHighlight()
         @isWorking = no
         @filterEditorView.editor.setText ''
@@ -59,9 +74,18 @@ class QuickJumpView extends View
         @detach()
 
     searchTargets: (keyword) ->
+        """
+        Search targets by the keyword near the cursor.
+        @param keyword: {string} The keyword.
+        @return: {list} The point of targets.
+            [{
+                column: {int}
+                row: {int}}
+            }]
+        """
         if not keyword
-            # clear targets
-            return
+            @clearHighlight()
+            return[]
 
         targets = []
         cursorRange = @editor.getSelection().getBufferRange()
@@ -78,8 +102,7 @@ class QuickJumpView extends View
                 ranSearch++
                 targets.push x for x in @searchAtLine(keyword, buffer, searchLineBottom)
             break if not ranSearch or targets.length >= 36
-
-        @highlightTargets targets
+        targets
 
     searchAtLine: (keyword, buffer, line) ->
         """
@@ -87,23 +110,46 @@ class QuickJumpView extends View
         @param keyword: {string} The search keyword.
         @param buffer: {buffer object} The buffer of the editor.
         @param line: {int} The line of the buffer.
-        @return: {list} [point{column: {int}, row: {int}}]
+        @return: {list} Target objects. [point{column: {int}, row: {int}}]
         """
-        for index in [0...buffer.lines[line].length] by 1 when buffer.lines[line][index] is keyword
+        keyword = keyword.toLowerCase()
+        for index in [0...buffer.lines[line].length] by 1 when buffer.lines[line][index].toLowerCase() is keyword
             column: index
             row: line
 
     clearHighlight: ->
+        """
+        Remove all highlights.
+        """
         @editorView.find('.qj-highlight').remove()
 
     highlightTargets: (targets) ->
-        table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        for target, index in targets
-            $element = $("<div class='qj-highlight'>#{table[index]}</div>")
+        """
+        Highlight targets.
+        @param targets: {list}
+            [{
+                column: {int}
+                row: {int}}
+            }]
+        """
+        for target, index in targets when index < @targetsIndexTable.length
+            $element = $("<div class='qj-highlight'>#{@targetsIndexTable[index]}</div>")
             $element.css @editorView.pixelPositionForBufferPosition([target.row, target.column])
             @editorView.find('.scroll-view .overlayer:first').append $element
 
+    gotoTarget: (target) ->
+        """
+        Set cursor to the point.
+        @param target: {object}
+            column: {int}
+            row: {int}
+        """
+        @editor.setCursorBufferPosition target
+
     setPosition: ->
+        """
+        Set the position of the input box of quick jump.
+        """
         {left, top} = @editorView.pixelPositionForScreenPosition @editor.getCursorScreenPosition()
         height = @outerHeight()
         potentialTop = top + @editorView.lineHeight
