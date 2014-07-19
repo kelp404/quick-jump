@@ -34,7 +34,9 @@ class QuickJumpView extends View
             @isWorking = yes
 
         @filterEditorView.on 'keydown', ({originalEvent}) =>
-            return if originalEvent.keyCode is 8 # back
+            if originalEvent.keyCode is 8 # back
+                @clearHighlight()
+                return
 
             if originalEvent.keyCode is 27 # esc
                 originalEvent.preventDefault()
@@ -70,6 +72,7 @@ class QuickJumpView extends View
                     # search targets by the filter char
                     content = @filterEditorView.editor.getBuffer().lines[0]
                     @targets = @searchTargets content
+                    @clearHighlight()
                     @highlightTargets @targets
 
         @filterEditorView.on 'focusout', =>
@@ -100,9 +103,7 @@ class QuickJumpView extends View
                 row: {int}}
             }]
         """
-        if not keyword
-            @clearHighlight()
-            return[]
+        return[] if not keyword
 
         targets = []
         cursorRange = @editor.getSelection().getBufferRange()
