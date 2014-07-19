@@ -1,5 +1,5 @@
 {
-  "name": "Quick Jump",
+  "name": "quick-jump",
   "main": "./lib/quick-jump",
   "version": "0.0.0-beta1",
   "description": "Quickly navigate the cursor to any position visible in the editor.",
