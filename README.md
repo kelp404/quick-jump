@@ -3,7 +3,7 @@
 An Atom quick jump package.  
 Quickly navigate the cursor to any position visible in the editor like AceJump.
 
-![screenshot](_images/quick-jump.gif)
+![screenshot](https://raw.githubusercontent.com/kelp404/quick-jump/master/_images/quick-jump.gif)
 
 1. `cmd-;` to start quick-jump.  
 2. Then you can press the char you want to jump.  
