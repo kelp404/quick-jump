@@ -34,28 +34,43 @@ class QuickJumpView extends View
             @isWorking = yes
 
         @filterEditorView.on 'keydown', ({originalEvent}) =>
-            process.nextTick =>
-                # search targets by the filter char
-                content = @filterEditorView.editor.getBuffer().lines[0]
-                @targets = @searchTargets content
-                @highlightTargets @targets
-
             return if originalEvent.keyCode is 8 # back
 
             if originalEvent.keyCode is 27 # esc
                 originalEvent.preventDefault()
                 originalEvent.stopPropagation()
                 @cancel()
+                return
 
             content = @filterEditorView.editor.getBuffer().lines[0]
             if content.length
                 # there is a filter char, set cursor to the taget.
                 originalEvent.preventDefault()
                 originalEvent.stopPropagation()
-                index = @targetsIndexTable.indexOf String.fromCharCode(originalEvent.keyCode).toUpperCase()
-                if @targets[index]?
-                    @cancel()
-                    @gotoTarget @targets[index], originalEvent.metaKey
+
+                if originalEvent.keyCode is 9 # tab
+                    # search next targets
+                    bound = null
+                    if not originalEvent.shiftKey
+                        sortedRows = (x.row for x in @targets).sort()
+                        bound =
+                            top: sortedRows[0]
+                            bottom: sortedRows[sortedRows.length - 1]
+                    @targets = @searchTargets content, bound
+                    @clearHighlight()
+                    @highlightTargets @targets
+                else
+                    # go to the target.
+                    index = @targetsIndexTable.indexOf String.fromCharCode(originalEvent.keyCode).toUpperCase()
+                    if @targets[index]?
+                        @cancel()
+                        @gotoTarget @targets[index], originalEvent.metaKey
+            else
+                process.nextTick =>
+                    # search targets by the filter char
+                    content = @filterEditorView.editor.getBuffer().lines[0]
+                    @targets = @searchTargets content
+                    @highlightTargets @targets
 
         @filterEditorView.on 'focusout', =>
             if @isWorking
@@ -72,10 +87,13 @@ class QuickJumpView extends View
         @editorView.focus()
         @detach()
 
-    searchTargets: (keyword) ->
+    searchTargets: (keyword, bound) ->
         """
         Search targets by the keyword near the cursor.
         @param keyword: {string} The keyword.
+        @param bound: {object} The search bound.
+            top: {int} The searchLineTop shoud less equal than this value.
+            bottom: {int} The searchLineBottom should greater equal than this value.
         @return: {list} The point of targets.
             [{
                 column: {int}
@@ -89,16 +107,17 @@ class QuickJumpView extends View
         targets = []
         cursorRange = @editor.getSelection().getBufferRange()
         buffer = @editor.getBuffer()
-        #column row
         for index in [0...buffer.lines.length] by 1
             ranSearch = 0
             searchLineTop = cursorRange.end.row - index
             searchLineBottom = cursorRange.end.row + index
             if searchLineTop >= 0 and index > 0 # search before cursor
                 ranSearch++
+                continue if searchLineTop > bound?.top
                 targets.push x for x in @searchAtLine(keyword, buffer, searchLineTop)
             if searchLineBottom < buffer.lines.length # search after cursor
                 ranSearch++
+                continue if searchLineBottom < bound?.bottom
                 targets.push x for x in @searchAtLine(keyword, buffer, searchLineBottom)
             break if not ranSearch or targets.length >= @targetsIndexTable.length
         targets
