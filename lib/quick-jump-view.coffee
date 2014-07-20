@@ -52,13 +52,13 @@ class QuickJumpView extends View
             content = @filterEditorView.editor.getBuffer().lines[0]
             if content.length
                 # there is a filter char, set cursor to the taget.
+                eventProcessed = no
                 if originalEvent.keyCode is 9 # tab
                     # search next targets
-                    originalEvent.preventDefault()
-                    originalEvent.stopPropagation()
+                    eventProcessed = yes
                     bound = null
                     if not originalEvent.shiftKey
-                        sortedRows = (x.row for x in @targets).sort()
+                        sortedRows = (x.row for x in @targets).sort (a, b) -> a > b
                         bound =
                             top: sortedRows[0]
                             bottom: sortedRows[sortedRows.length - 1]
@@ -68,11 +68,13 @@ class QuickJumpView extends View
                 else
                     # go to the target.
                     index = @targetsIndexTable.indexOf String.fromCharCode(originalEvent.keyCode).toUpperCase()
+                    eventProcessed = yes if index >= 0
                     if @targets[index]?
-                        originalEvent.preventDefault()
-                        originalEvent.stopPropagation()
                         @cancel()
                         @gotoTarget @targets[index], originalEvent.metaKey
+                if eventProcessed
+                    originalEvent.preventDefault()
+                    originalEvent.stopPropagation()
             else
                 # press the char to search
                 process.nextTick =>
