@@ -1,7 +1,7 @@
 {
   "name": "quick-jump",
   "main": "./lib/quick-jump",
-  "version": "0.0.0-beta3",
+  "version": "0.0.0",
   "description": "Quickly navigate the cursor to any position visible in the editor.",
   "repository": {
     "type": "git",
