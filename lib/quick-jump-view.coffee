@@ -4,7 +4,7 @@
 module.exports =
 class QuickJumpView extends View
     @content: ->
-        @div class: 'select-list popover-list', =>
+        @div class: 'select-list popover-list quick-jump', =>
             @subview 'filterEditorView', new EditorView(mini: yes)
 
     isWorking: no # QuickJumpView is visible. for focusout event.
@@ -27,31 +27,35 @@ class QuickJumpView extends View
 
     handleEvents: ->
         @editorView.command 'quick-jump:start', =>
+            if @isWorking
+                @cancel()
+                return
             @editor.beginTransaction()
             @editorView.appendToLinesView @
             @setPosition()
             @filterEditorView.focus()
             @isWorking = yes
+        @command 'quick-jump:cancel', =>
+            @cancel()
 
         @filterEditorView.on 'keydown', ({originalEvent}) =>
-            if originalEvent.keyCode is 8 # back
-                @clearHighlight()
-                return
-
-            if originalEvent.keyCode is 27 # esc
-                originalEvent.preventDefault()
-                originalEvent.stopPropagation()
-                @cancel()
-                return
+            switch originalEvent.keyCode
+                when 8 # back
+                    @clearHighlight()
+                    return
+                when 13 # enter
+                    originalEvent.preventDefault()
+                    originalEvent.stopPropagation()
+                    @cancel()
+                    return
 
             content = @filterEditorView.editor.getBuffer().lines[0]
             if content.length
                 # there is a filter char, set cursor to the taget.
-                originalEvent.preventDefault()
-                originalEvent.stopPropagation()
-
                 if originalEvent.keyCode is 9 # tab
                     # search next targets
+                    originalEvent.preventDefault()
+                    originalEvent.stopPropagation()
                     bound = null
                     if not originalEvent.shiftKey
                         sortedRows = (x.row for x in @targets).sort()
@@ -65,9 +69,12 @@ class QuickJumpView extends View
                     # go to the target.
                     index = @targetsIndexTable.indexOf String.fromCharCode(originalEvent.keyCode).toUpperCase()
                     if @targets[index]?
+                        originalEvent.preventDefault()
+                        originalEvent.stopPropagation()
                         @cancel()
                         @gotoTarget @targets[index], originalEvent.metaKey
             else
+                # press the char to search
                 process.nextTick =>
                     # search targets by the filter char
                     content = @filterEditorView.editor.getBuffer().lines[0]

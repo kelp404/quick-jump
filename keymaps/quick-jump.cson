@@ -1,2 +1,5 @@
 '.editor':
-  'cmd-;': 'quick-jump:start'
+    'cmd-;': 'quick-jump:start'
+
+'.quick-jump':
+    'escape': 'quick-jump:cancel'
