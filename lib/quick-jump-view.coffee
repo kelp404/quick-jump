@@ -26,6 +26,9 @@ class QuickJumpView extends View
         @handleEvents()
 
     handleEvents: ->
+        # -------------------------------------------------
+        # commands
+        # -------------------------------------------------
         @editorView.command 'quick-jump:start', =>
             if @isWorking
                 @cancel()
@@ -35,8 +38,21 @@ class QuickJumpView extends View
             @setPosition()
             @filterEditorView.focus()
             @isWorking = yes
+
         @command 'quick-jump:cancel', =>
             @cancel()
+
+        # -------------------------------------------------
+        # events
+        # -------------------------------------------------
+        @filterEditorView.on 'focusout', =>
+            # check focusout event is triggered by user
+            @cancel() if @isWorking
+
+        @filterEditorView.preempt 'textInput', =>
+            # lock input when there is a char
+            content = @filterEditorView.editor.getBuffer().lines[0]
+            return no if content.length
 
         @filterEditorView.on 'keydown', ({originalEvent}) =>
             switch originalEvent.keyCode
@@ -83,10 +99,6 @@ class QuickJumpView extends View
                     @targets = @searchTargets content
                     @clearHighlight()
                     @highlightTargets @targets
-
-        @filterEditorView.on 'focusout', =>
-            if @isWorking
-                @cancel()
 
     cancel: ->
         """
