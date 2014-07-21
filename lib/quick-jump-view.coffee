@@ -58,10 +58,10 @@ class QuickJumpView extends View
                     eventProcessed = yes
                     bound = null
                     if not originalEvent.shiftKey
-                        sortedRows = (x.row for x in @targets).sort (a, b) -> a > b
+                        sorted = @targets.sort (a, b) -> a.row - b.row
                         bound =
-                            top: sortedRows[0]
-                            bottom: sortedRows[sortedRows.length - 1]
+                            top: sorted[0].row
+                            bottom: sorted[sorted.length - 1].row
                     @targets = @searchTargets content, bound
                     @clearHighlight()
                     @highlightTargets @targets
