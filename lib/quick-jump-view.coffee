@@ -29,7 +29,7 @@ class QuickJumpView extends View
         # -------------------------------------------------
         # commands
         # -------------------------------------------------
-        @editorView.command 'quick-jump:start', =>
+        @editorView.command 'quick-jump:toggle', =>
             if @isWorking
                 @cancel()
                 return
