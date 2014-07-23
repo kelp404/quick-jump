@@ -127,7 +127,6 @@ class QuickJumpView extends View
         return[] if not keyword
 
         targets = []
-        window.cc = @editor
         cursorRange = @editor.getSelectedBufferRange()
         buffer = @editor.getBuffer()
         for index in [0...buffer.lines.length] by 1
