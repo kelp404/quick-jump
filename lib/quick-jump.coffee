@@ -10,7 +10,7 @@ module.exports =
             quickJumpView = new QuickJumpView editorView
             @quickJumpViews.push quickJumpView
             editorView.on 'editor:will-be-removed', =>
-                quickJumpView.remove()
+                quickJumpView.destroy()
                 for view, index in @quickJumpViews when view is quickJumpView
                     @quickJumpViews.splice index, 1
                     break
@@ -18,6 +18,5 @@ module.exports =
     deactivate: ->
         @editorSubscription?.off()
         @editorSubscription = null
-        for view in @quickJumpViews
-            view.remove()
+        @quickJumpViews.forEach (quickJumpView) -> quickJumpView.destroy()
         @quickJumpViews = []

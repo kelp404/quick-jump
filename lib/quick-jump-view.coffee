@@ -7,6 +7,7 @@ class QuickJumpView extends View
         @div class: 'select-list popover-list quick-jump', =>
             @subview 'filterEditorView', new EditorView(mini: yes)
 
+    toggleSubscription: null
     isWorking: no # QuickJumpView is visible. for focusout event.
     targets: []
     """
@@ -30,11 +31,11 @@ class QuickJumpView extends View
         # -------------------------------------------------
         # commands
         # -------------------------------------------------
-        @editorView.command 'quick-jump:toggle', =>
-            if @isWorking
+        @toggleSubscription = @editorView.command 'quick-jump:toggle', =>
+            if @hasParent()
                 @cancel()
-                return
-            @attach()
+            else
+                @attach()
 
         @command 'quick-jump:cancel', =>
             @cancel()
@@ -130,6 +131,13 @@ class QuickJumpView extends View
         @filterEditorView.editor.setText ''
         @editor.abortTransaction()
         @editorView.focus()
+        @detach()
+
+    destroy: ->
+        """
+        Destroy quick jump form the editor view.
+        """
+        @toggleSubscription.off 'quick-jump:toggle'
         @detach()
 
     searchTargets: (keyword, bound) ->
