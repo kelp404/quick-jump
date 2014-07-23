@@ -16,7 +16,8 @@ class QuickJumpView extends View
         row: {int}}
     }]
     """
-    targetsIndexTable: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    targetsIndexTable: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    vimModeLog: ''
 
     initialize: (@editorView) ->
         @css
@@ -33,11 +34,7 @@ class QuickJumpView extends View
             if @isWorking
                 @cancel()
                 return
-            @editor.beginTransaction()
-            @editorView.appendToLinesView @
-            @setPosition()
-            @filterEditorView.focus()
-            @isWorking = yes
+            @attach()
 
         @command 'quick-jump:cancel', =>
             @cancel()
@@ -100,10 +97,34 @@ class QuickJumpView extends View
                     @clearHighlight()
                     @highlightTargets @targets
 
+    attach: ->
+        # for vim-mode
+        window.j = $
+        window.editor = @editorView
+        if @editorView.hasClass 'vim-mode'
+            if @editorView.hasClass 'command-mode'
+                @vimModeLog = 'command-mode'
+                @editorView.trigger 'vim-mode:activate-insert-mode'
+            else if @editorView.hasClass 'insert-mode'
+                @vimModeLog = 'insert-mode'
+            else
+                @vimModeLog = ''
+
+        @editor.beginTransaction()
+        @editorView.appendToLinesView @
+        @setPosition()
+        @filterEditorView.focus()
+        @isWorking = yes
+
     cancel: ->
         """
         Hide quick jump view.
         """
+        # for vim-mode
+        if @editorView.hasClass('vim-mode') and @vimModeLog is 'command-mode'
+            # back to command mode
+            @editorView.trigger 'vim-mode:activate-command-mode'
+
         @clearHighlight()
         @isWorking = no
         @filterEditorView.editor.setText ''
