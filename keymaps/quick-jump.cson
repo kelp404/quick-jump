@@ -1,5 +1,9 @@
-'.editor':
+'.platform-darwin .editor':
     'cmd-;': 'quick-jump:toggle'
+'.platform-win32 .editor':
+    'ctrl-;': 'quick-jump:toggle'
+'.platform-linux .editor':
+    'ctrl-;': 'quick-jump:toggle'
 
 '.quick-jump':
     'escape': 'quick-jump:cancel'

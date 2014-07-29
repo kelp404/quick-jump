@@ -1,7 +1,7 @@
 {
   "name": "quick-jump",
   "main": "./lib/quick-jump",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Quickly navigate the cursor to any position visible in the editor.",
   "repository": {
     "type": "git",
@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "engines": {
-    "atom": ">0.50.0"
+    "atom": ">=0.100.0"
   },
   "dependencies": {
 
